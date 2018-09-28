@@ -40,7 +40,6 @@ class AnnotationProcessorPathFactoryTest extends Specification {
     AnnotationProcessorPathFactory factory = new AnnotationProcessorPathFactory(TestFiles.fileCollectionFactory())
 
     def "uses path defined on Java compile options, as a FileCollection"() {
-        def cp = files("lib.jar")
         def procPath = files("processor.jar")
 
         given:
@@ -48,11 +47,10 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ["-processorpath", "ignore-me"]
 
         expect:
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp) == procPath
+        factory.getEffectiveAnnotationProcessorClasspath(options) == procPath
     }
 
     def "uses path defined on Java compile options, as a Configuration"() {
-        def cp = files("lib.jar")
         def procPath = files("processor.jar")
 
         given:
@@ -63,12 +61,11 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ["-processorpath", "ignore-me"]
 
         expect:
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == procPath.files
+        factory.getEffectiveAnnotationProcessorClasspath(options).files == procPath.files
     }
 
     @Unroll
     def "uses empty path when defined on Java compile options as a FileCollection (where compilerArgs #scenario)"() {
-        def cp = files("lib.jar")
         def procPath = files()
 
         given:
@@ -76,7 +73,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = compilerArgs
 
         expect:
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp).empty
+        factory.getEffectiveAnnotationProcessorClasspath(options).empty
 
         where:
         scenario             | compilerArgs
@@ -86,7 +83,6 @@ class AnnotationProcessorPathFactoryTest extends Specification {
 
     @Unroll
     def "uses path defined using -processorpath compiler arg (where options.annotationProcessorPath is #scenario)"() {
-        def cp = files("lib.jar")
         def procPath = files("processor.jar", "proc-lib.jar")
 
         given:
@@ -94,7 +90,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ["-processorpath", procPath.asPath]
 
         expect:
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == procPath.files
+        factory.getEffectiveAnnotationProcessorClasspath(options).files == procPath.files
 
         where:
         scenario                          | annotationProcessorPath
@@ -104,14 +100,12 @@ class AnnotationProcessorPathFactoryTest extends Specification {
 
     @Unroll
     def "fails when -processorpath is the last compiler arg (where options.annotationProcessorPath is #scenario)"() {
-        def cp = files("lib.jar")
-
         given:
+        options.annotationProcessorPath = annotationProcessorPath
         options.compilerArgs = ["-Xthing", "-processorpath"]
 
         when:
-        options.annotationProcessorPath = annotationProcessorPath
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp)
+        factory.getEffectiveAnnotationProcessorClasspath(options)
 
         then:
         def e = thrown(InvalidUserDataException)
@@ -124,7 +118,6 @@ class AnnotationProcessorPathFactoryTest extends Specification {
     }
 
     def "uses empty path when processing disabled"() {
-        def cp = files("lib.jar")
         def procPath = files("processor.jar")
 
         given:
@@ -132,36 +125,13 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ["-processorpath", "ignore-me", "-proc:none"]
 
         expect:
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp).empty
-    }
-
-    @Issue("gradle/gradle#1471")
-    @Unroll
-    def "uses compile classpath when -processor is found in compile options and no processor path is defined (where options.annotationProcessorPath is #scenario)"() {
-        given:
-        def dir = tmpDir.file("classes-dir")
-        dir.file("com/foo/Processor.class").createFile()
-        def cp = files(dir)
-
-        when:
-        options.compilerArgs = ['-processor', 'com.foo.Processor']
-
-        then:
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
-
-        where:
-        scenario                 | annotationProcessorPath
-        'null'                   | null
-        'an empty configuration' | Mock(Configuration) { isEmpty() >> true }
+        factory.getEffectiveAnnotationProcessorClasspath(options).empty
     }
 
     @Issue("gradle/gradle#1471")
     @Unroll
     def "uses processorpath when -processor is found in compile options and explicit processor path is defined (where options.annotationProcessorPath is #scenario)"() {
         given:
-        def dir = tmpDir.file("classes-dir")
-        dir.file("com/foo/Processor.class").createFile()
-        def cp = files(dir)
         def procPath = files("processor.jar", "proc-lib.jar")
 
         when:
@@ -169,7 +139,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ["-processorpath", procPath.asPath]
 
         then:
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == procPath.files
+        factory.getEffectiveAnnotationProcessorClasspath(options).files == procPath.files
 
         where:
         scenario                 | annotationProcessorPath
@@ -177,30 +147,13 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         'an empty configuration' | Mock(Configuration) { isEmpty() >> true }
     }
 
-    @Issue("gradle/gradle#1471")
-    def "fails when -processor is the last compiler arg"() {
-        def cp = files("lib.jar")
-
-        given:
-        options.compilerArgs = ["-Xthing", "-processor"]
-
-        when:
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp)
-
-        then:
-        def e = thrown(InvalidUserDataException)
-        e.message == 'No processor specified for compiler argument -processor in requested compiler args: -Xthing -processor'
-    }
-
     @Unroll
     def "uses empty path when options.annotationProcessorPath is #scenario"() {
-        given:
-        def dir = tmpDir.file("classes-dir")
-        def jar = tmpDir.file("classes.jar")
-        def cp = files(dir, jar)
+        when:
+        options.annotationProcessorPath = annotationProcessorPath
 
-        expect:
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp).empty
+        then:
+        factory.getEffectiveAnnotationProcessorClasspath(options).empty
 
         where:
         scenario                 | annotationProcessorPath
