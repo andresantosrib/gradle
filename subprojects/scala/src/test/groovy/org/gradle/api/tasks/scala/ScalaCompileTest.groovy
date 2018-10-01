@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.compile.AbstractCompile
@@ -34,7 +33,6 @@ class ScalaCompileTest extends AbstractCompileTest {
     private scalaCompiler = Mock(Compiler)
     private scalaClasspath = Mock(FileTreeInternal)
     private processorClasspath = Mock(FileCollection)
-    private processorDetector = Mock(AnnotationProcessorPathFactory)
 
     @Override
     AbstractCompile getCompile() {
@@ -85,7 +83,7 @@ class ScalaCompileTest extends AbstractCompileTest {
 
         given:
         setUpMocksAndAttributes(scalaCompile)
-        processorDetector.getEffectiveAnnotationProcessorClasspath(scalaCompile.getOptions()) >> processorClasspath
+        scalaCompile.getOptions().setAnnotationProcessorPath(processorClasspath)
 
         when:
         execute(scalaCompile)

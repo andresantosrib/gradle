@@ -455,10 +455,9 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
-     * @return The annotation processor path; {@code null} or empty means annotation processing is disabled.
+     * @return The annotation processor path
      * @since 3.4
      */
-    @Nullable
     @Internal // Handled on the compile task
     public FileCollection getAnnotationProcessorPath() {
         return annotationProcessorPath;
@@ -467,10 +466,10 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
-     * @param annotationProcessorPath The annotation processor path, or {@code null} to disable annotation processing.
+     * @param annotationProcessorPath The annotation processor path
      * @since 3.4
      */
-    public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {
+    public void setAnnotationProcessorPath(FileCollection annotationProcessorPath) {
         this.annotationProcessorPath = annotationProcessorPath;
     }
 
